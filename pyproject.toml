@@ -1,0 +1,61 @@
+[build-system]
+requires = [
+    "build~=0.8",
+    "setuptools>=62.0",
+    "wheel~=0.37"
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "b3d"
+description = "AWS utility to delete all resources by tag name"
+license = {file = "LICENSE"}
+authors = [
+    {name = "Frederick Jansen"},
+    {email = "fjansen@magnite.com"}
+]
+readme = "README.md"
+requires-python = ">=3.7"
+dependencies = [
+    "click ~= 8.1",
+    "rich ~= 12.4",
+    "boto3 ~= 1.24",
+]
+dynamic = ["version"]
+
+[project.urls]
+homepage = "https://github.com/nthparty/b3d"
+repository = "https://github.com/nthparty/b3d"
+documentation = "https://github.com/nthparty/b3d/blob/master/README.md"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.dynamic]
+version = {attr = "b3d.__version__"}
+
+[tool.pytest.ini_options]
+addopts = "--doctest-modules --ignore=docs --cov=fuzzy --cov-report term-missing"
+
+[project.scripts]
+fuzzy = "fuzzy.cli:main"
+
+[project.optional-dependencies]
+docs = [
+    "toml~=0.10.2",
+    "sphinx~=4.2.0",
+    "sphinx-rtd-theme~=1.0.0"
+]
+test = [
+    "pytest~=7.0",
+    "pytest-cov~=3.0"
+]
+lint = [
+    "pylint~=2.14.0"
+]
+coveralls = [
+    "coveralls~=3.3.1"
+]
+publish = [
+    "twine~=4.0"
+]
