@@ -27,10 +27,15 @@ def find_objects(modules):
     return sorted(ret)
 
 
-def extend_resource_map(module):
+def extend_resource_map(submodule):
+    """
+    Produce a dictionary with a single top-level key representing some AWS Service,
+    further populated by resources contained within that service. The "module" argument
+    is some submodule of the src.b3d.resources module.
+    """
 
     # Import objects from top-level module (e.g. src.b3d.resource.ec2)
-    m = import_module(module)
+    m = import_module(submodule)
     # Extract top-level service type class from this module (for example above, this is EC2)
     top_level_service_class = getattr(
         m, [c for c in dir(m) if c[0] != "_" and c != "Service"][0]
@@ -52,11 +57,12 @@ def extend_resource_map(module):
 def build_resource_map(module):
     """
     Populate and return a resource map consisting of top-level AWS service types
-    (e.g. ec2, iam, etc.), and further keyed on resource types for that service.
+    (e.g. ec2, iam, etc.), and further keyed on resource types for that service
+    (e.g. instances, policies, etc.).
     """
 
     resource_map = {}
-    modules = find_objects([import_module(module)])
-    for m in modules:
-        resource_map.update(extend_resource_map(m))
+    submodules = find_objects([import_module(module)])
+    for sm in submodules:
+        resource_map.update(extend_resource_map(sm))
     return resource_map

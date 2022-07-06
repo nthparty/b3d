@@ -5,28 +5,31 @@ class Service(abc.ABC):
 
     @staticmethod
     @abc.abstractmethod
-    def service_type():
+    def service_type() -> str:
+        """
+        Return the name of this service type.
+        """
         pass
 
     class Resource(abc.ABC):
 
         @staticmethod
         @abc.abstractmethod
-        def resource_type():
+        def extract_resource_id_from_arn(arn: str) -> str:
             pass
 
         @staticmethod
         @abc.abstractmethod
-        def query(arn: str):
+        def resource_type() -> str:
             """
-            Determine if a resource with this ARN exists.
+            Return the name of this resource type.
             """
             pass
 
         @staticmethod
         @abc.abstractmethod
-        def destroy(arn: str, name: str, tag: str, region: str):
+        def destroy(arn: str, region: str, dry: bool = True):
             """
-            Destroy the resource corresponding to this ARN, if it exists.
+            Destroy the resource corresponding to this ARN.
             """
             pass
