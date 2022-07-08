@@ -1,4 +1,5 @@
 import abc
+import boto3
 
 
 class Service(abc.ABC):
@@ -14,8 +15,15 @@ class Service(abc.ABC):
     class Resource(abc.ABC):
 
         @staticmethod
-        @abc.abstractmethod
         def extract_resource_id_from_arn(arn: str) -> str:
+            return arn.split("/")[-1]
+
+        @staticmethod
+        @abc.abstractmethod
+        def query(cl: boto3.client, resource_id: str) -> bool:
+            """
+            Determine if this resource exists.
+            """
             pass
 
         @staticmethod

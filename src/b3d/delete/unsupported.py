@@ -1,27 +1,27 @@
 from src.b3d.delete import Service
+from src.b3d.utils import log_msg
 import boto3
 
 
-class IAM(Service):
+class UnsupportedService(Service):
     """
     Container class for IAM resource deletion procedures
     """
 
     @staticmethod
     def service_type():
-        return "iam"
+        return "unsupported-service"
 
-    class Policy(Service.Resource):
+    class UnsupportedResource(Service.Resource):
 
         @staticmethod
         def resource_type():
-            return "policy"
+            return "unsupported-resource"
 
         @staticmethod
         def query(cl: boto3.client, resource_id: str) -> bool:
-            """ TODO """
             return True
 
         @staticmethod
         def destroy(arn: str, region: str, dry: bool = True):
-            return ["policy arn here, along with the ARNs of any other resources affected in the process"]
+            return log_msg.log_msg_unsupported_resource(arn)

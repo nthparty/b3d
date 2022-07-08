@@ -30,8 +30,8 @@ def find_objects(modules):
 def extend_resource_map(submodule):
     """
     Produce a dictionary with a single top-level key representing some AWS Service,
-    further populated by resources contained within that service. The "module" argument
-    is some submodule of the src.b3d.resources module.
+    further populated by resources contained within that service. The "submodule" argument
+    is some sub-module of the src.b3d.resources module.
     """
 
     # Import objects from top-level module (e.g. src.b3d.resource.ec2)

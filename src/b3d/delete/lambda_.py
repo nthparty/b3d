@@ -1,4 +1,5 @@
 from src.b3d.delete import Service
+import boto3
 
 
 class Lambda(Service):
@@ -13,12 +14,13 @@ class Lambda(Service):
     class Function(Service.Resource):
 
         @staticmethod
-        def extract_resource_id_from_arn(arn: str) -> str:
-            return arn.split("/")[-1]
-
-        @staticmethod
         def resource_type():
             return "lambda-function"
+
+        @staticmethod
+        def query(cl: boto3.client, resource_id: str) -> bool:
+            """ TODO """
+            return True
 
         @staticmethod
         def destroy(arn: str, region: str, dry: bool = True):
