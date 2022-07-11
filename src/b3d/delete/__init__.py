@@ -1,5 +1,6 @@
 import abc
 import boto3
+from typing import List, Dict
 
 
 class Service(abc.ABC):
@@ -19,8 +20,12 @@ class Service(abc.ABC):
             return arn.split("/")[-1]
 
         @staticmethod
+        def extract_resource_name_from_arn(arn: str):
+            return arn.split("/")[-1]
+
+        @staticmethod
         @abc.abstractmethod
-        def query(cl: boto3.client, resource_id: str) -> bool:
+        def query(cl: boto3.client, resource_arn: str) -> bool:
             """
             Determine if this resource exists.
             """
@@ -36,7 +41,7 @@ class Service(abc.ABC):
 
         @staticmethod
         @abc.abstractmethod
-        def destroy(arn: str, region: str, dry: bool = True):
+        def destroy(arn: str, region: str, dry: bool = True) -> List[Dict]:
             """
             Destroy the resource corresponding to this ARN.
             """

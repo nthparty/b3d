@@ -4,6 +4,18 @@ from src.b3d import aws, utils
 DELETE_PROTOCOL_OBJECT_MAP = utils.build_resource_map("src.b3d.delete")
 
 
+def _get_all_resources_with_tag(name: str, tag: str, region: str):
+    """
+    TODO: need to manually query User, IAM Role, & InstanceProfile resources, as they're
+     not covered by the ResourceGroupsTaggingApi
+    """
+
+    ret = []
+    # Retrieve ARNs of all objects with the supplied name/tag pair using the ResourceGroupsTaggingApi
+    ret.extend(aws.resource_groups_tagging.get_resources_by_tag(name, tag, region))
+    return ret
+
+
 def _parse_arn(arn: str):
     """
     Parse an ARN with the following form:
@@ -40,10 +52,12 @@ def _map_arns(arns: list) -> zip:
 def delete_resources(name: str, tag: str, region: str, dry_run=True):
 
     # Retrieve ARNs of all objects with the supplied name/tag pair
-    resource_arns = aws.resource_groups_tagging.get_resources_by_tag(name, tag, region)
+    resource_arns = _get_all_resources_with_tag(name, tag, region)
+
     # Map each ARN to it's corresponding delete object
     mapped_arns = _map_arns(resource_arns)
-    # For each resource, detach is from all dependent objects, delete it, and produce a report
+
+    # For each resource, detach it from all dependent objects, delete it, and produce a report
     # of all performed actions, whether they were successful, and error messages for any actions
     # that were unsuccessful
     state_reports = [obj.destroy(arn, region, dry_run) for arn, obj in mapped_arns]

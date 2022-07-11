@@ -19,7 +19,7 @@ class UnsupportedService(Service):
             return "unsupported-resource"
 
         @staticmethod
-        def query(cl: boto3.client, resource_id: str) -> bool:
+        def query(cl: boto3.client, resource_arn: str) -> bool:
             return True
 
         @staticmethod

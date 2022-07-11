@@ -1,8 +1,20 @@
 
 
-def log_msg_destroy(resource_type: str, resource_id: str, resp: dict) -> dict:
+def _new_log_msg(result: str = None, err: str = None, msg: str = None):
+    return {
+        "result": result,
+        "err": err,
+        "msg": msg
+    }
 
-    log_msg = {}
+
+def log_msg_destroy(resource_type: str, resource_id: str, resp: dict) -> dict:
+    """
+    Produce a log message that describes the resource being deleted and whether the
+    operation was successful.
+    """
+
+    log_msg = _new_log_msg()
     if resp["ResponseMetadata"]["HTTPStatusCode"] != 200:
         log_msg["result"] = "failure"
         log_msg["err"] = resp["Error"]
@@ -20,8 +32,12 @@ def log_msg_detach(
         resource_id_detached_from: str, resource_id_detached: str,
         resp: dict
 ) -> dict:
+    """
+    Produce a log message that describes the resource being detached, the resource it is
+    being detached from, and whether the operation was successful.
+    """
 
-    log_msg = {}
+    log_msg = _new_log_msg()
     if resp["ResponseMetadata"]["HTTPStatusCode"] != 200:
         log_msg["result"] = "failure"
         log_msg["err"] = resp["Error"]
@@ -36,9 +52,12 @@ def log_msg_detach(
 
 
 def log_msg_unsupported_resource(resource_arn: str):
-    return {
-        "result": "failure",
-        "msg":
-            f"Unable to delete resource with ARN {resource_arn} because "
-            f"this library currently doesn't support that resource type."
-    }
+    """
+    Produce a log message for a resource that this library does not currently support.
+    """
+    return _new_log_msg(
+        result="failure",
+        msg=f"Unable to delete resource with ARN {resource_arn} because "
+        f"this library currently doesn't support that resource type."
+    )
+
