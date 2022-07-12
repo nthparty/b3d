@@ -1,18 +1,38 @@
 from src.b3d import aws, utils
+import boto3
 
 
 DELETE_PROTOCOL_OBJECT_MAP = utils.build_resource_map("src.b3d.delete")
 
 
-def _get_all_resources_with_tag(name: str, tag: str, region: str):
+def _get_all_resources_with_tag(tag_key: str, tag_value: str, region: str):
     """
     TODO: need to manually query User, IAM Role, & InstanceProfile resources, as they're
      not covered by the ResourceGroupsTaggingApi
     """
 
     ret = []
-    # Retrieve ARNs of all objects with the supplied name/tag pair using the ResourceGroupsTaggingApi
-    ret.extend(aws.resource_groups_tagging.get_resources_by_tag(name, tag, region))
+
+    resource_groups_tagging_client = boto3.client("resourcegroupstaggingapi", region_name=region)
+    # Retrieve ARNs of all objects with the supplied name/tag pair using the ResourceGroupsTaggingApi.
+    # Note that this API does not support *all* AWS resource types, so some manual ARN querying is
+    # performed below.
+    ret.extend(
+        aws.resource_groups_tagging.get_resources_by_tag(
+            resource_groups_tagging_client, tag_key, tag_value
+        )
+    )
+
+    iam_client = boto3.client("iam", region_name=region)
+    # Retrieve ARNs of all IAM Users with supplied key/value tag pair
+    ret.extend(
+        aws.iam.get_all_user_arns_with_tags(iam_client, [(tag_key, tag_value)])
+    )
+    # Retrieve ARNs of all IAM Roles with supplied key/value tag pair
+    ret.extend(
+        aws.iam.get_all_role_arns_with_tags(iam_client, [(tag_key, tag_value)])
+    )
+
     return ret
 
 
@@ -49,10 +69,10 @@ def _map_arns(arns: list) -> zip:
     return zip(arns, mapped_arns)
 
 
-def delete_resources(name: str, tag: str, region: str, dry_run=True):
+def delete_resources(tag_key: str, tag_value: str, region: str = "us-east-1", dry=True):
 
     # Retrieve ARNs of all objects with the supplied name/tag pair
-    resource_arns = _get_all_resources_with_tag(name, tag, region)
+    resource_arns = _get_all_resources_with_tag(tag_key, tag_value, region)
 
     # Map each ARN to it's corresponding delete object
     mapped_arns = _map_arns(resource_arns)
@@ -60,7 +80,4 @@ def delete_resources(name: str, tag: str, region: str, dry_run=True):
     # For each resource, detach it from all dependent objects, delete it, and produce a report
     # of all performed actions, whether they were successful, and error messages for any actions
     # that were unsuccessful
-    state_reports = [obj.destroy(arn, region, dry_run) for arn, obj in mapped_arns]
-
-    # TODO: write state_reports to file
-    return state_reports
+    return [obj.destroy(arn, region, dry) for arn, obj in mapped_arns]

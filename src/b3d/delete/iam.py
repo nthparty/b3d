@@ -79,7 +79,7 @@ class IAM(Service):
                 resource_type_detached_from="user",
                 resource_id_detached="N/A",
                 resource_id_detached_from=user_name,
-                resp=aws.iam.detach_permissions_boundary(cl, user_name)
+                resp=aws.iam.detach_permissions_boundary_from_user(cl, user_name)
             )
 
         @staticmethod
@@ -108,13 +108,22 @@ class IAM(Service):
 
             all_access_keys_attached = aws.iam.get_user_access_keys(cl, user_name)
             for ak in all_access_keys_attached:
+
+                delete_resp = aws.iam.delete_access_key(cl, user_name, ak.get("AccessKeyId", ""))
                 resps.append(
                     log_msg.log_msg_detach(
                         resource_type_detached="access-key",
                         resource_type_detached_from="user",
                         resource_id_detached=ak.get("AccessKeyId", "N/A"),
                         resource_id_detached_from=user_name,
-                        resp=aws.iam.delete_access_key(cl, user_name, ak.get("AccessKeyId", ""))
+                        resp=delete_resp
+                    )
+                )
+                resps.append(
+                    log_msg.log_msg_destroy(
+                        resource_type="access-key",
+                        resource_id=ak.get("AccessKeyId", "N/A"),
+                        resp=delete_resp
                     )
                 )
 

@@ -3,10 +3,19 @@ import boto3
 import b3q
 
 
-def delete_instance(cl: boto3.client, instance_id: str):
-    return helpers.make_call_catch_err(
+def delete_instance(cl: boto3.client, instance_id: str, dry: bool = True):
+
+    if dry:
+        return helpers.dry_run_success_resp()
+
+    terminate_resp = helpers.make_call_catch_err(
         cl.terminate_instances, InstanceIds=[instance_id]
     )
+
+    if terminate_resp["ResponseMetadata"]["HTTPStatusCode"] == 200:
+        helpers.wait_on_condition(cl, "instance_terminated", InstanceIds=[instance_id])
+
+    return terminate_resp
 
 
 def get_instance(cl: boto3.client, instance_id: str):
@@ -24,7 +33,11 @@ def describe_all_instances(cl: boto3.client):
     ))
 
 
-def delete_security_group(cl: boto3.client, security_group_id: str):
+def delete_security_group(cl: boto3.client, security_group_id: str, dry: bool = True):
+
+    if dry:
+        return helpers.dry_run_success_resp()
+
     return helpers.make_call_catch_err(
         cl.delete_security_group, GroupId=security_group_id
     )
@@ -51,10 +64,14 @@ def get_default_security_group_id(cl: boto3.client):
     )
 
     return None if resp["ResponseMetadata"]["HTTPStatusCode"] != 200 \
-        else resp["SecurityGroups"]["GroupId"]
+        else resp["SecurityGroups"][0]["GroupId"]
 
 
-def delete_volume(cl: boto3.client, volume_id: str):
+def delete_volume(cl: boto3.client, volume_id: str, dry: bool = True):
+
+    if dry:
+        return helpers.dry_run_success_resp()
+
     return helpers.make_call_catch_err(
         cl.delete_volume, VolumeId=volume_id
     )
@@ -81,7 +98,11 @@ def get_volume_attachments(cl: boto3.client, volume_id: str):
         ]
 
 
-def detach_volume_from_instance(cl: boto3.client, instance_id: str, volume_id: str):
+def detach_volume_from_instance(cl: boto3.client, instance_id: str, volume_id: str, dry: bool = True):
+
+    if dry:
+        return helpers.dry_run_success_resp()
+
     return helpers.make_call_catch_err(
         cl.detach_volume, InstanceId=instance_id, VolumeId=volume_id
     )
@@ -91,11 +112,15 @@ def detach_security_group_from_instance(
         cl: boto3.client,
         instance_id: str,
         attached_security_groups: list,
-        target_security_group_id: str
+        target_security_group_id: str,
+        dry: bool = True
 ):
     """
     Detach a target security group from an instance.
     """
+
+    if dry:
+        return helpers.dry_run_success_resp()
 
     result_groups = [sg for sg in attached_security_groups if sg != target_security_group_id]
     default_security_group_id = get_default_security_group_id(cl)

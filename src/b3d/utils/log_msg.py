@@ -15,6 +15,7 @@ def log_msg_destroy(resource_type: str, resource_id: str, resp: dict) -> dict:
     """
 
     log_msg = _new_log_msg()
+
     if resp["ResponseMetadata"]["HTTPStatusCode"] != 200:
         log_msg["result"] = "failure"
         log_msg["err"] = resp["Error"]

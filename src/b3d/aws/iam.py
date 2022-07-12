@@ -1,5 +1,5 @@
 from src.b3d.aws import helpers
-from typing import List, Dict
+from typing import List, Dict, Tuple
 import boto3
 import b3q
 
@@ -28,45 +28,53 @@ def get_role(cl: boto3.client, role_name: str) -> dict:
     return None if resp["ResponseMetadata"]["HTTPStatusCode"] != 200 else resp
 
 
+def get_all_roles(cl: boto3.client, prefix: str = "/") -> List[Dict]:
+    return list(b3q.get(
+        cl.list_roles, attribute="Roles", arguments={"PathPrefix": prefix}
+    ))
+
+
+def role_has_tags(cl: boto3.client, role_name: str, tags: List[Tuple]) -> bool:
+    """
+    Determine whether any in some list of tag key / value pairs is associated with
+    some role
+    """
+
+    role_data = get_role(cl, role_name)
+    if role_data is None:
+        return False
+
+    for tag_key, tag_value in tags:
+        for t in role_data["Role"].get("Tags", []):
+
+            # For Role resources, tag key is always a single string (not a list)
+            if t["Key"] == tag_key and t["Value"] == tag_value:
+                return True
+
+    return False
+
+
+def get_all_role_arns_with_tags(cl: boto3.client, tags: List[Tuple]) -> List[str]:
+    """
+    Return the ARNs of all roles that have at least one tag from the tags list
+    """
+
+    ret = []
+    all_roles = get_all_roles(cl)
+    for r in all_roles:
+
+        role_name = r.get("RoleName", None)
+        if role_name is not None:
+            if role_has_tags(cl, role_name, tags):
+                ret.append(r.get("Arn"))
+
+    return ret
+
+
 def delete_instance_profile(cl: boto3.client, instance_profile_name: str) -> dict:
     return helpers.make_call_catch_err(
         cl.delete_instance_profile, InstanceProfileName=instance_profile_name
     )
-
-
-def get_all_users(cl: boto3.client) -> List[Dict]:
-    return list(b3q.get(
-        cl.list_users, attribute="Users"
-    ))
-
-
-def delete_user(cl: boto3.client, user_name: str) -> dict:
-    return helpers.make_call_catch_err(
-        cl.delete_user, UserName=user_name
-    )
-
-
-def get_user(cl: boto3.client, user_name: str) -> dict:
-
-    resp = helpers.make_call_catch_err(
-        cl.get_user, UserName=user_name
-    )
-    return None if resp["ResponseMetadata"]["HTTPStatusCode"] != 200 else resp
-
-
-def get_attached_user_policies(cl: boto3.client, user_name: str) -> List[Dict]:
-
-    resp = helpers.make_call_catch_err(
-        cl.list_attached_user_policies, UserName=user_name
-    )
-    return [] if resp["ResponseMetadata"]["HTTPStatusCode"] != 200 else resp.get("AttachedPolicies", [])
-
-
-def get_user_access_keys(cl: boto3.client, user_name: str) -> List[Dict]:
-    resp = helpers.make_call_catch_err(
-        cl.list_access_keys, UserName=user_name
-    )
-    return [] if resp["ResponseMetadata"]["HTTPStatusCode"] != 200 else resp.get("AccessKeyMetadata", [])
 
 
 def delete_access_key(cl: boto3.client, user_name: str, access_key_id: str) -> dict:
@@ -87,6 +95,41 @@ def detach_policy_from_role(cl: boto3.client, policy_arn: str, role_id: str):
 
 def detach_instance_profile_from_ec2_instance(cl: boto3.client, instance_profile_id: str, instance_id: str):
     pass
+
+
+def get_attached_user_policies(cl: boto3.client, user_name: str) -> List[Dict]:
+
+    resp = helpers.make_call_catch_err(
+        cl.list_attached_user_policies, UserName=user_name
+    )
+    return [] if resp["ResponseMetadata"]["HTTPStatusCode"] != 200 else resp.get("AttachedPolicies", [])
+
+
+def get_user_access_keys(cl: boto3.client, user_name: str) -> List[Dict]:
+    resp = helpers.make_call_catch_err(
+        cl.list_access_keys, UserName=user_name
+    )
+    return [] if resp["ResponseMetadata"]["HTTPStatusCode"] != 200 else resp.get("AccessKeyMetadata", [])
+
+
+def get_all_users(cl: boto3.client) -> List[Dict]:
+    return list(b3q.get(
+        cl.list_users, attribute="Users"
+    ))
+
+
+def delete_user(cl: boto3.client, user_name: str) -> dict:
+    return helpers.make_call_catch_err(
+        cl.delete_user, UserName=user_name
+    )
+
+
+def get_user(cl: boto3.client, user_name: str) -> dict:
+
+    resp = helpers.make_call_catch_err(
+        cl.get_user, UserName=user_name
+    )
+    return None if resp["ResponseMetadata"]["HTTPStatusCode"] != 200 else resp
 
 
 def detach_policy_from_user(cl: boto3.client, user_name: str, policy_arn: str):
@@ -127,7 +170,44 @@ def policy_is_permissions_boundary_for_user(cl: boto3.client, user_name: str, po
     return False
 
 
-def detach_permissions_boundary(cl: boto3.client, user_name: str) -> dict:
+def detach_permissions_boundary_from_user(cl: boto3.client, user_name: str) -> dict:
     return helpers.make_call_catch_err(
         cl.delete_user_permissions_boundary, UserName=user_name
     )
+
+
+def user_has_tags(cl: boto3.client, user_name: str, tags: List[Tuple]) -> bool:
+    """
+    Determine whether any in some list of tag key / value pairs is associated with
+    some user profile
+    """
+
+    user_data = get_user(cl, user_name)
+    if user_data is None:
+        return False
+
+    for tag_key, tag_value in tags:
+        for t in user_data["User"].get("Tags", []):
+
+            # For User resources, tag key is always a single string (not a list)
+            if t["Key"] == tag_key and t["Value"] == tag_value:
+                return True
+
+    return False
+
+
+def get_all_user_arns_with_tags(cl: boto3.client, tags: List[Tuple]) -> List[str]:
+    """
+    Return the ARNs of all users that have at least one tag from the tags list
+    """
+
+    ret = []
+    all_users = get_all_users(cl)
+    for u in all_users:
+
+        user_name = u.get("UserName", None)
+        if user_name is not None:
+            if user_has_tags(cl, user_name, tags):
+                ret.append(u.get("Arn"))
+
+    return ret
