@@ -14,52 +14,6 @@ class IAM(Service):
     def service_type() -> str:
         return "iam"
 
-    class Policy(Service.Resource):
-
-        @staticmethod
-        def resource_type() -> str:
-            return "policy"
-
-        @staticmethod
-        def query(cl: boto3.client, resource_arn: str) -> bool:
-            return aws.iam.get_policy(cl, resource_arn) is not None
-
-        @staticmethod
-        def destroy(arn: str, region: str, dry: bool = True) -> List[Dict]:
-            return []
-
-    class Role(Service.Resource):
-
-        @staticmethod
-        def resource_type():
-            return "role"
-
-        @staticmethod
-        def query(cl: boto3.client, resource_arn: str) -> bool:
-            return aws.iam.get_role(
-                cl, IAM.Role.extract_resource_name_from_arn(resource_arn)
-            ) is not None
-
-        @staticmethod
-        def destroy(arn: str, region: str, dry: bool = True) -> List[Dict]:
-            return []
-
-    class InstanceProfile(Service.Resource):
-
-        @staticmethod
-        def resource_type() -> str:
-            return "instance-profile"
-
-        @staticmethod
-        def query(cl: boto3.client, resource_arn: str) -> bool:
-            return aws.iam.get_instance_profile(
-                cl, IAM.InstanceProfile.extract_resource_name_from_arn(resource_arn)
-            ) is not None
-
-        @staticmethod
-        def destroy(arn: str, region: str, dry: bool = True) -> List[Dict]:
-            return []
-
     class User(Service.Resource):
 
         @staticmethod
@@ -73,17 +27,17 @@ class IAM(Service):
             ) is not None
 
         @staticmethod
-        def _detach_permissions_boundary(cl: boto3.client, user_name: str) -> Dict:
+        def _detach_permissions_boundary(cl: boto3.client, user_name: str, dry: bool = True) -> Dict:
             return log_msg.log_msg_detach(
                 resource_type_detached="permissions-boundary",
                 resource_type_detached_from="user",
                 resource_id_detached="N/A",
                 resource_id_detached_from=user_name,
-                resp=aws.iam.detach_permissions_boundary_from_user(cl, user_name)
+                resp=aws.iam.detach_permissions_boundary_from_user(cl, user_name, dry)
             )
 
         @staticmethod
-        def _detach_all_policies(cl: boto3.client, user_name: str) -> List[Dict]:
+        def _detach_all_policies(cl: boto3.client, user_name: str, dry: bool = True) -> List[Dict]:
 
             resps = []
 
@@ -95,21 +49,21 @@ class IAM(Service):
                         resource_type_detached_from="user",
                         resource_id_detached=p.get("PolicyArn", "N/A"),
                         resource_id_detached_from=user_name,
-                        resp=aws.iam.detach_policy_from_user(cl, user_name, p.get("PolicyArn", ""))
+                        resp=aws.iam.detach_policy_from_user(cl, user_name, p.get("PolicyArn", ""), dry)
                     )
                 )
 
             return resps
 
         @staticmethod
-        def _detach_all_access_keys(cl: boto3.client, user_name: str) -> List[Dict]:
+        def _detach_all_access_keys(cl: boto3.client, user_name: str, dry: bool = True) -> List[Dict]:
 
             resps = []
 
             all_access_keys_attached = aws.iam.get_user_access_keys(cl, user_name)
             for ak in all_access_keys_attached:
 
-                delete_resp = aws.iam.delete_access_key(cl, user_name, ak.get("AccessKeyId", ""))
+                delete_resp = aws.iam.delete_access_key(cl, user_name, ak.get("AccessKeyId", ""), dry)
                 resps.append(
                     log_msg.log_msg_detach(
                         resource_type_detached="access-key",
@@ -155,7 +109,7 @@ class IAM(Service):
                 log_msg.log_msg_destroy(
                     resource_type="user",
                     resource_id=arn,
-                    resp=aws.iam.delete_user(cl, user_name)
+                    resp=aws.iam.delete_user(cl, user_name, dry)
                 )
             )
 

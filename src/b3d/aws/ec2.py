@@ -3,6 +3,7 @@ import boto3
 import b3q
 
 
+@helpers.attempt_api_call_multiple_times
 def delete_instance(cl: boto3.client, instance_id: str, dry: bool = True):
 
     if dry:
@@ -33,6 +34,7 @@ def describe_all_instances(cl: boto3.client):
     ))
 
 
+@helpers.attempt_api_call_multiple_times
 def delete_security_group(cl: boto3.client, security_group_id: str, dry: bool = True):
 
     if dry:
@@ -67,6 +69,7 @@ def get_default_security_group_id(cl: boto3.client):
         else resp["SecurityGroups"][0]["GroupId"]
 
 
+@helpers.attempt_api_call_multiple_times
 def delete_volume(cl: boto3.client, volume_id: str, dry: bool = True):
 
     if dry:
@@ -150,8 +153,15 @@ def get_all_instances_with_security_group_id(cl: boto3.client, security_group_id
 
     for instance in all_instances:
 
-        security_groups = [sg["GroupId"] for sg in instance.get("SecurityGroups", [])]
+        # Each instance record has an 'Instances'  list, but there should only be one entry per instance
+        instance_data = instance["Instances"][0]
+        security_groups = [sg["GroupId"] for sg in instance_data.get("SecurityGroups", [])]
         if security_group_id in security_groups:
-            ret.append((instance.get("InstanceId"), [gid for gid in security_groups if gid != security_group_id]))
+            ret.append(
+                (
+                    instance_data.get("InstanceId"),
+                    [gid for gid in security_groups if gid != security_group_id]
+                )
+            )
 
     return ret

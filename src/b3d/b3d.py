@@ -7,7 +7,7 @@ DELETE_PROTOCOL_OBJECT_MAP = utils.build_resource_map("src.b3d.delete")
 
 def _get_all_resources_with_tag(tag_key: str, tag_value: str, region: str):
     """
-    TODO: need to manually query User, IAM Role, & InstanceProfile resources, as they're
+    TODO: need to manually query User [DONE], IAM Role [DONE], & InstanceProfile resources, as they're
      not covered by the ResourceGroupsTaggingApi
     """
 
@@ -79,5 +79,9 @@ def delete_resources(tag_key: str, tag_value: str, region: str = "us-east-1", dr
 
     # For each resource, detach it from all dependent objects, delete it, and produce a report
     # of all performed actions, whether they were successful, and error messages for any actions
-    # that were unsuccessful
-    return [obj.destroy(arn, region, dry) for arn, obj in mapped_arns]
+    # that were unsuccessful. Only reports with length > 0 are returned, because an empty report
+    # indicates that the resource had already been deleted.
+    reports = [obj.destroy(arn, region, dry) for arn, obj in mapped_arns]
+
+    # Flatten 2D list and return it
+    return [elem for reports_list in [r for r in reports if len(r) > 0] for elem in reports_list]

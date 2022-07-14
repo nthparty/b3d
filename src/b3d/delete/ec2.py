@@ -41,7 +41,6 @@ class EC2(Service):
             resps = []
 
             instance_resp = aws.ec2.get_instance(cl, instance_id)
-
             try:
                 all_groups = [
                     sg["GroupId"] for sg in
@@ -168,7 +167,7 @@ class EC2(Service):
             ) is not None
 
         @staticmethod
-        def _detach_from_instances(cl: boto3.client, volume_id: str) -> List[Dict]:
+        def _detach_from_instances(cl: boto3.client, volume_id: str, dry: bool) -> List[Dict]:
             """
             Get IDs of all instances this volume is attached to and detach it from each
             """
@@ -189,7 +188,7 @@ class EC2(Service):
                         resource_id_detached=volume_id,
                         resource_id_detached_from=instance_id,
                         resp=aws.ec2.detach_volume_from_instance(
-                            cl, instance_id, volume_id
+                            cl, instance_id, volume_id, dry=dry
                         )
                     )
                 )
@@ -208,14 +207,14 @@ class EC2(Service):
                 return resps
 
             # Detach this volume from instances
-            resps.extend(EC2.Volume._detach_from_instances(cl, volume_id))
+            resps.extend(EC2.Volume._detach_from_instances(cl, volume_id, dry))
 
             # Delete this volume
             resps.append(
                 log_msg.log_msg_destroy(
                     resource_type="volume",
                     resource_id=volume_id,
-                    resp=aws.ec2.delete_volume(cl, volume_id)
+                    resp=aws.ec2.delete_volume(cl, volume_id, dry=dry)
                 )
             )
 

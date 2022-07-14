@@ -4,7 +4,11 @@ import boto3
 import b3q
 
 
-def delete_policy(cl: boto3.client, policy_arn: str) -> dict:
+def delete_policy(cl: boto3.client, policy_arn: str, dry: bool = True) -> dict:
+
+    if dry:
+        return helpers.dry_run_success_resp()
+
     return helpers.make_call_catch_err(
         cl.delete_policy, PolicyArn=policy_arn
     )
@@ -16,7 +20,11 @@ def get_policy(cl: boto3.client, policy_arn: str) -> dict:
     return None if resp["ResponseMetadata"]["HTTPStatusCode"] != 200 else resp
 
 
-def delete_role(cl: boto3.client, role_name: str) -> dict:
+def delete_role(cl: boto3.client, role_name: str, dry: bool = True) -> dict:
+
+    if dry:
+        return helpers.dry_run_success_resp()
+
     return helpers.make_call_catch_err(
         cl.delete_role, RoleName=role_name
     )
@@ -71,13 +79,21 @@ def get_all_role_arns_with_tags(cl: boto3.client, tags: List[Tuple]) -> List[str
     return ret
 
 
-def delete_instance_profile(cl: boto3.client, instance_profile_name: str) -> dict:
+def delete_instance_profile(cl: boto3.client, instance_profile_name: str, dry: bool = True) -> dict:
+
+    if dry:
+        return helpers.dry_run_success_resp()
+
     return helpers.make_call_catch_err(
         cl.delete_instance_profile, InstanceProfileName=instance_profile_name
     )
 
 
-def delete_access_key(cl: boto3.client, user_name: str, access_key_id: str) -> dict:
+def delete_access_key(cl: boto3.client, user_name: str, access_key_id: str, dry: bool = True) -> dict:
+
+    if dry:
+        return helpers.dry_run_success_resp()
+
     return helpers.make_call_catch_err(
         cl.delete_access_key, UserName=user_name, AccessKeyId=access_key_id
     )
@@ -118,7 +134,11 @@ def get_all_users(cl: boto3.client) -> List[Dict]:
     ))
 
 
-def delete_user(cl: boto3.client, user_name: str) -> dict:
+def delete_user(cl: boto3.client, user_name: str, dry: bool = True) -> dict:
+
+    if dry:
+        return helpers.dry_run_success_resp()
+
     return helpers.make_call_catch_err(
         cl.delete_user, UserName=user_name
     )
@@ -132,7 +152,11 @@ def get_user(cl: boto3.client, user_name: str) -> dict:
     return None if resp["ResponseMetadata"]["HTTPStatusCode"] != 200 else resp
 
 
-def detach_policy_from_user(cl: boto3.client, user_name: str, policy_arn: str):
+def detach_policy_from_user(cl: boto3.client, user_name: str, policy_arn: str, dry: bool = True):
+
+    if dry:
+        return helpers.dry_run_success_resp()
+
     return helpers.make_call_catch_err(
         cl.detach_user_policy, UserName=user_name, PolicyArn=policy_arn
     )
@@ -170,7 +194,11 @@ def policy_is_permissions_boundary_for_user(cl: boto3.client, user_name: str, po
     return False
 
 
-def detach_permissions_boundary_from_user(cl: boto3.client, user_name: str) -> dict:
+def detach_permissions_boundary_from_user(cl: boto3.client, user_name: str, dry: bool = True) -> dict:
+
+    if dry:
+        return helpers.dry_run_success_resp()
+
     return helpers.make_call_catch_err(
         cl.delete_user_permissions_boundary, UserName=user_name
     )
