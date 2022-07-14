@@ -55,7 +55,7 @@ def attempt_api_call_multiple_times(func):
         while attempts < 3:
 
             resp = func(*args, **kwargs)
-            if resp["ResponseMetadata"]["HTTPStatusCode"] == 200:
+            if resp["ResponseMetadata"]["HTTPStatusCode"] in [200, 204]:
                 return resp
 
             attempts += 1

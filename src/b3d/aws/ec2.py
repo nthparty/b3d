@@ -4,7 +4,7 @@ import b3q
 
 
 @helpers.attempt_api_call_multiple_times
-def delete_instance(cl: boto3.client, instance_id: str, dry: bool = True):
+def delete_instance(cl: boto3.client, instance_id: str, dry: bool):
 
     if dry:
         return helpers.dry_run_success_resp()
@@ -35,7 +35,7 @@ def describe_all_instances(cl: boto3.client):
 
 
 @helpers.attempt_api_call_multiple_times
-def delete_security_group(cl: boto3.client, security_group_id: str, dry: bool = True):
+def delete_security_group(cl: boto3.client, security_group_id: str, dry: bool):
 
     if dry:
         return helpers.dry_run_success_resp()
@@ -70,7 +70,7 @@ def get_default_security_group_id(cl: boto3.client):
 
 
 @helpers.attempt_api_call_multiple_times
-def delete_volume(cl: boto3.client, volume_id: str, dry: bool = True):
+def delete_volume(cl: boto3.client, volume_id: str, dry: bool):
 
     if dry:
         return helpers.dry_run_success_resp()
@@ -101,7 +101,7 @@ def get_volume_attachments(cl: boto3.client, volume_id: str):
         ]
 
 
-def detach_volume_from_instance(cl: boto3.client, instance_id: str, volume_id: str, dry: bool = True):
+def detach_volume_from_instance(cl: boto3.client, instance_id: str, volume_id: str, dry: bool):
 
     if dry:
         return helpers.dry_run_success_resp()
@@ -116,7 +116,7 @@ def detach_security_group_from_instance(
         instance_id: str,
         attached_security_groups: list,
         target_security_group_id: str,
-        dry: bool = True
+        dry: bool
 ):
     """
     Detach a target security group from an instance.
