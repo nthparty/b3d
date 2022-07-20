@@ -11,6 +11,7 @@ def get_key(cl: boto3.client, key_id: str):
     return None if resp["ResponseMetadata"]["HTTPStatusCode"] != 200 else resp
 
 
+@helpers.attempt_api_call_multiple_times
 def disable_key(cl: boto3.client, key_id: str, dry: bool):
 
     if dry:
@@ -21,6 +22,7 @@ def disable_key(cl: boto3.client, key_id: str, dry: bool):
     )
 
 
+@helpers.attempt_api_call_multiple_times
 def schedule_key_deletion(cl: boto3.client, key_id: str, dry: bool):
 
     if dry:

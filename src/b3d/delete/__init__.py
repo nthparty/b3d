@@ -20,10 +20,6 @@ class Service(abc.ABC):
             return arn.split("/")[-1]
 
         @staticmethod
-        def extract_resource_name_from_arn(arn: str):
-            return arn.split("/")[-1]
-
-        @staticmethod
         @abc.abstractmethod
         def query(cl: boto3.client, resource_arn: str) -> bool:
             """

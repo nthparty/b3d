@@ -21,17 +21,13 @@ class Lambda(Service):
             return arn.split(":")[-1]
 
         @staticmethod
-        def extract_resource_name_from_arn(arn: str):
-            return arn.split(":")[-1]
-
-        @staticmethod
         def resource_type() -> str:
             return "function"
 
         @staticmethod
         def query(cl: boto3.client, resource_arn: str) -> bool:
             return aws.lambda_.get_function(
-                cl, Lambda.Function.extract_resource_name_from_arn(resource_arn)
+                cl, Lambda.Function.extract_resource_id_from_arn(resource_arn)
             ) is not None
 
         @staticmethod
@@ -39,12 +35,12 @@ class Lambda(Service):
 
             resps = []
             cl = boto3.client("lambda", region_name=region)
-            function_name = Lambda.Function.extract_resource_name_from_arn(arn)
+            function_name = Lambda.Function.extract_resource_id_from_arn(arn)
 
             if not Lambda.Function.query(cl, arn):
                 return resps
 
-            # Destroy this function, append log of the event to resps
+            # Destroy this function
             resps.append(
                 log_msg.log_msg_destroy(
                     resource_type="function",

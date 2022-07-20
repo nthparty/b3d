@@ -4,6 +4,7 @@ import boto3
 import b3q
 
 
+@helpers.attempt_api_call_multiple_times
 def delete_policy(cl: boto3.client, policy_arn: str, dry: bool) -> dict:
 
     if dry:
@@ -20,6 +21,7 @@ def get_policy(cl: boto3.client, policy_arn: str) -> dict:
     return None if resp["ResponseMetadata"]["HTTPStatusCode"] != 200 else resp
 
 
+@helpers.attempt_api_call_multiple_times
 def delete_role(cl: boto3.client, role_name: str, dry: bool) -> dict:
 
     if dry:
@@ -27,6 +29,39 @@ def delete_role(cl: boto3.client, role_name: str, dry: bool) -> dict:
 
     return helpers.make_call_catch_err(
         cl.delete_role, RoleName=role_name
+    )
+
+
+@helpers.attempt_api_call_multiple_times
+def delete_role_permissions_boundary(cl: boto3.client, role_name: str, dry: bool) -> dict:
+
+    if dry:
+        return helpers.dry_run_success_resp()
+
+    return helpers.make_call_catch_err(
+        cl.delete_role_permissions_boundary, RoleName=role_name
+    )
+
+
+@helpers.attempt_api_call_multiple_times
+def delete_role_policy(cl: boto3.client, role_name: str, policy_name: str, dry: bool) -> dict:
+
+    if dry:
+        return helpers.dry_run_success_resp()
+
+    return helpers.make_call_catch_err(
+        cl.delete_role_policy, RoleName=role_name, PolicyName=policy_name
+    )
+
+
+@helpers.attempt_api_call_multiple_times
+def detach_role_policy(cl: boto3.client, role_name: str, policy_arn: str, dry: bool) -> dict:
+
+    if dry:
+        return helpers.dry_run_success_resp()
+
+    return helpers.make_call_catch_err(
+        cl.detach_role_policy, RoleName=role_name, PolicyArn=policy_arn
     )
 
 
@@ -40,6 +75,29 @@ def get_all_roles(cl: boto3.client, prefix: str = "/") -> List[Dict]:
     return list(b3q.get(
         cl.list_roles, attribute="Roles", arguments={"PathPrefix": prefix}
     ))
+
+
+def role_has_permissions_boundary(cl: boto3.client, role_name: str) -> bool:
+
+    role_data = get_role(cl, role_name)
+    if role_data is not None:
+        # If this role has a nonempty permissions boundary, there will be a
+        # "PermissionsBoundary" key present in its object record
+        return role_data["Role"].get("PermissionsBoundary") is not None
+
+    return False
+
+
+def list_embedded_role_policies(cl: boto3.client, role_name: str):
+    return helpers.make_call_catch_err(
+        cl.list_role_policies, RoleName=role_name
+    )
+
+
+def list_attached_role_policies(cl: boto3.client, role_name: str):
+    return helpers.make_call_catch_err(
+        cl.list_attached_role_policies, RoleName=role_name
+    )
 
 
 def role_has_tags(cl: boto3.client, role_name: str, tags: List[Tuple]) -> bool:
@@ -79,6 +137,7 @@ def get_all_role_arns_with_tags(cl: boto3.client, tags: List[Tuple]) -> List[str
     return ret
 
 
+@helpers.attempt_api_call_multiple_times
 def delete_instance_profile(cl: boto3.client, instance_profile_name: str, dry: bool) -> dict:
 
     if dry:
@@ -89,6 +148,7 @@ def delete_instance_profile(cl: boto3.client, instance_profile_name: str, dry: b
     )
 
 
+@helpers.attempt_api_call_multiple_times
 def delete_access_key(cl: boto3.client, user_name: str, access_key_id: str, dry: bool) -> dict:
 
     if dry:
@@ -126,6 +186,7 @@ def get_all_users(cl: boto3.client) -> List[Dict]:
     ))
 
 
+@helpers.attempt_api_call_multiple_times
 def delete_user(cl: boto3.client, user_name: str, dry: bool) -> dict:
 
     if dry:
@@ -144,6 +205,7 @@ def get_user(cl: boto3.client, user_name: str) -> dict:
     return None if resp["ResponseMetadata"]["HTTPStatusCode"] != 200 else resp
 
 
+@helpers.attempt_api_call_multiple_times
 def detach_policy_from_user(cl: boto3.client, user_name: str, policy_arn: str, dry: bool):
 
     if dry:
@@ -186,6 +248,7 @@ def policy_is_permissions_boundary_for_user(cl: boto3.client, user_name: str, po
     return False
 
 
+@helpers.attempt_api_call_multiple_times
 def detach_permissions_boundary_from_user(cl: boto3.client, user_name: str, dry: bool) -> dict:
 
     if dry:

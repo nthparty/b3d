@@ -36,14 +36,35 @@ def _get_all_resources_with_tag(tag_key: str, tag_value: str, region: str):
     return ret
 
 
-def _parse_arn(arn: str):
+def _parse_api_gateway_arn(arn: str):
     """
-    Parse an ARN with the following form:
-    'arn:aws:<SERVICE>:<REGION>:<ACCT_ID>:<RESOURCE_TYPE>/<RESOURCE_ID>', and
-    return (<SERVICE>, <RESOURCE_TYPE>) tuples for each ARN.
+    Custom parsing rules for API Gateway ARNs
     """
 
     splt = arn.split(":")
+    resource_path = splt[-1].split("/")
+
+    if "stages" in resource_path:
+        # Form /restapis/<api_id>/stages/<stage_name>
+        return "apigateway", "stages"
+    else:
+        # Form /<resource-type>/<resource_id>
+        return "apigateway", resource_path[1]
+
+
+def _parse_arn(arn: str):
+    """
+    Parse an ARN with the following form:
+    'arn:aws:<SERVICE>:<REGION>:<ACCT_ID>:<RESOURCE_TYPE>/<RESOURCE_ID>'
+    and return (<SERVICE>, <RESOURCE_TYPE>) tuples for each ARN.
+    """
+
+    splt = arn.split(":")
+
+    # API Gateway ARNs have several corner cases
+    if splt[2] == "apigateway":
+        return _parse_api_gateway_arn(arn)
+
     return splt[2], splt[-1].split("/")[0]
 
 
@@ -65,6 +86,7 @@ def _map_arns(arns: list) -> zip:
     """
     Map each ARN to its corresponding delete protocol object.
     """
+
     mapped_arns = [_map_arn(arn) for arn in arns]
     return zip(arns, mapped_arns)
 
@@ -84,4 +106,8 @@ def delete_resources(tag_key: str, tag_value: str, region: str = "us-east-1", dr
     reports = [obj.destroy(arn, region, dry) for arn, obj in mapped_arns]
 
     # Flatten 2D list and return it
-    return [elem for reports_list in [r for r in reports if len(r) > 0] for elem in reports_list]
+    return [
+        elem for reports_list in
+        [r for r in reports if len(r) > 0]
+        for elem in reports_list
+    ]

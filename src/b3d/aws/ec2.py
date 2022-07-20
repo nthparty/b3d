@@ -9,14 +9,14 @@ def delete_instance(cl: boto3.client, instance_id: str, dry: bool):
     if dry:
         return helpers.dry_run_success_resp()
 
-    terminate_resp = helpers.make_call_catch_err(
+    resp = helpers.make_call_catch_err(
         cl.terminate_instances, InstanceIds=[instance_id]
     )
 
-    if terminate_resp["ResponseMetadata"]["HTTPStatusCode"] == 200:
+    if resp["ResponseMetadata"]["HTTPStatusCode"] == 200:
         helpers.wait_on_condition(cl, "instance_terminated", InstanceIds=[instance_id])
 
-    return terminate_resp
+    return resp
 
 
 def get_instance(cl: boto3.client, instance_id: str):
