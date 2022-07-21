@@ -22,8 +22,23 @@ class SSM(Service):
 
         @staticmethod
         def query(cl: boto3.client, resource_arn: str) -> bool:
-            return True
+            return aws.ssm.get_parameter(
+                cl, SSM.Parameter.extract_resource_id_from_arn(resource_arn)
+            ) is not None
 
         @staticmethod
         def destroy(arn: str, region: str, dry: bool = True) -> List[Dict]:
-            return []
+
+            cl = boto3.client("ssm", region_name=region)
+            parameter_name = SSM.Parameter.extract_resource_id_from_arn(arn)
+
+            if not SSM.Parameter.query(cl, arn):
+                return []
+
+            return [
+                log_msg.log_msg_destroy(
+                    resource_type="parameter",
+                    resource_id=parameter_name,
+                    resp=aws.ssm.delete_parameter(cl, parameter_name, dry)
+                )
+            ]

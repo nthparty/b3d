@@ -12,7 +12,7 @@ def get_key(cl: boto3.client, key_id: str):
 
 
 @helpers.attempt_api_call_multiple_times
-def disable_key(cl: boto3.client, key_id: str, dry: bool):
+def disable_key(cl: boto3.client, key_id: str, dry: bool) -> dict:
 
     if dry:
         return helpers.dry_run_success_resp()
@@ -23,7 +23,7 @@ def disable_key(cl: boto3.client, key_id: str, dry: bool):
 
 
 @helpers.attempt_api_call_multiple_times
-def schedule_key_deletion(cl: boto3.client, key_id: str, dry: bool):
+def schedule_key_deletion(cl: boto3.client, key_id: str, dry: bool) -> dict:
 
     if dry:
         return helpers.dry_run_success_resp()

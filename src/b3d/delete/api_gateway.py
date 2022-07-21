@@ -140,6 +140,11 @@ class APIGateway(Service):
             return resps
 
     class Stage(Service.Resource):
+        """
+        TODO: This isn't necessary for PoC version of repository, since the UsagePlan resource
+            deletes all associated stages. Will want to fill this out going forward though for
+            the sake of completeness
+        """
 
         @staticmethod
         def resource_type() -> str:

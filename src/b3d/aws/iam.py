@@ -21,6 +21,29 @@ def get_policy(cl: boto3.client, policy_arn: str) -> dict:
     return None if resp["ResponseMetadata"]["HTTPStatusCode"] != 200 else resp
 
 
+def list_entities_policy_attached(cl: boto3.client, policy_arn: str) -> dict:
+    return helpers.make_call_catch_err(
+        cl.list_entities_for_policy, PolicyArn=policy_arn
+    )
+
+
+def list_policy_versions(cl: boto3.client, policy_arn: str) -> dict:
+    return helpers.make_call_catch_err(
+        cl.list_policy_versions, PolicyArn=policy_arn
+    )
+
+
+@helpers.attempt_api_call_multiple_times
+def delete_policy_version(cl: boto3.client, policy_arn: str, version_id: str, dry: bool) -> dict:
+
+    if dry:
+        return helpers.dry_run_success_resp()
+
+    return helpers.make_call_catch_err(
+        cl.delete_policy_version, PolicyArn=policy_arn, VersionId=version_id
+    )
+
+
 @helpers.attempt_api_call_multiple_times
 def delete_role(cl: boto3.client, role_name: str, dry: bool) -> dict:
 
@@ -294,3 +317,14 @@ def get_all_user_arns_with_tags(cl: boto3.client, tags: List[Tuple]) -> List[str
                 ret.append(u.get("Arn"))
 
     return ret
+
+
+@helpers.attempt_api_call_multiple_times
+def detach_policy_from_group(cl: boto3.client, group_name: str, policy_arn: str, dry: bool):
+
+    if dry:
+        return helpers.dry_run_success_resp()
+
+    return helpers.make_call_catch_err(
+        cl.detach_group_policy, GroupName=group_name, PolicyArn=policy_arn
+    )

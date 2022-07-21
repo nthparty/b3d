@@ -20,25 +20,6 @@ def wait_on_condition(cl: boto3.client, condition: str, **kwargs):
     waiter.wait(**kwargs)
 
 
-def w(func):
-
-    def wrap(*args, **kwargs):
-
-        resp = None
-        tries = 0
-
-        while tries < 3:
-            resp = func(*args, **kwargs)
-
-            if resp == 0:
-                return resp, tries
-
-            tries += 1
-
-        return resp, tries
-    return wrap
-
-
 def attempt_api_call_multiple_times(func):
     """
     Sometimes the AWS API needs time to catch up when doing multiple

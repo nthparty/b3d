@@ -44,7 +44,7 @@ def _parse_api_gateway_arn(arn: str):
     splt = arn.split(":")
     resource_path = splt[-1].split("/")
 
-    if "stages" in resource_path:
+    if resource_path[3] == "stages":
         # Form /restapis/<api_id>/stages/<stage_name>
         return "apigateway", "stages"
     else:
@@ -61,9 +61,15 @@ def _parse_arn(arn: str):
 
     splt = arn.split(":")
 
-    # API Gateway ARNs have several corner cases
+    # API Gateway ARNs have at least one corner case
     if splt[2] == "apigateway":
         return _parse_api_gateway_arn(arn)
+
+    if splt[2] == "s3":
+        # The ResourceGroupsTaggingApi only supports S3 buckets and we
+        # don't support a manual search-object-with-tag process for other
+        # S3 objects at this time
+        return "s3", "bucket"
 
     return splt[2], splt[-1].split("/")[0]
 

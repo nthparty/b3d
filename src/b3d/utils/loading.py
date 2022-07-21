@@ -1,5 +1,4 @@
 import os
-from src.b3d.delete import Service
 from pkgutil import iter_modules
 from importlib import import_module
 
@@ -43,13 +42,13 @@ def extend_resource_map(submodule):
         getattr(m, c) for c in [c for c in dir(m) if c[0] != "_" and c != "Service"]
     ]
 
-    # Extract top-level service type class from this module (for example above, this is EC2)
+    # Extract top-level service type class from this module (for src.b3d.resource.ec2, this is EC2)
     top_level_service_classes = [sc for sc in module_classes if getattr(sc, "service_type", None) is not None]
     if len(top_level_service_classes) != 1:
         raise ValueError("There should be exactly one top level Service class per delete module.")
     top_level_service_class = top_level_service_classes[0]
 
-    # Extract all resource wrapper classes from top-level service class
+    # Extract all resource classes from top-level service class
     cc = [
         c for c
         in dir(top_level_service_class)
