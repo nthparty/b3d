@@ -21,6 +21,41 @@ def get_policy(cl: boto3.client, policy_arn: str) -> dict:
     return None if resp["ResponseMetadata"]["HTTPStatusCode"] != 200 else resp
 
 
+def get_all_policies(cl: boto3.client, scope: str = "Local", prefix: str = "/"):
+    return list(b3q.get(
+        cl.list_policies, attribute="Policies", arguments={"PathPrefix": prefix, "Scope": scope}
+    ))
+
+
+def policy_has_tags(cl: boto3.client, policy_arn: str, tags: List[Tuple]) -> bool:
+
+    policy_data = get_policy(cl, policy_arn)
+    if policy_data is None:
+        return False
+
+    for tag_key, tag_value in tags:
+        for t in policy_data["Policy"].get("Tags", []):
+
+            if t["Key"] == tag_key and t["Value"] == tag_value:
+                return True
+
+    return False
+
+
+def get_all_policy_arns_with_tags(cl: boto3.client, tags: List[Tuple]) -> List[str]:
+
+    ret = []
+    all_policies = get_all_policies(cl)
+    for p in all_policies:
+
+        policy_arn = p.get("Arn", None)
+        if policy_arn is not None:
+            if policy_has_tags(cl, policy_arn, tags):
+                ret.append(policy_arn)
+
+    return ret
+
+
 def list_entities_policy_attached(cl: boto3.client, policy_arn: str) -> dict:
     return helpers.make_call_catch_err(
         cl.list_entities_for_policy, PolicyArn=policy_arn

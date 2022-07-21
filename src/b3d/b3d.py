@@ -6,10 +6,6 @@ DELETE_PROTOCOL_OBJECT_MAP = utils.build_resource_map("src.b3d.delete")
 
 
 def _get_all_resources_with_tag(tag_key: str, tag_value: str, region: str):
-    """
-    TODO: need to manually query User [DONE], IAM Role [DONE], & InstanceProfile resources, as they're
-     not covered by the ResourceGroupsTaggingApi
-    """
 
     ret = []
 
@@ -32,6 +28,10 @@ def _get_all_resources_with_tag(tag_key: str, tag_value: str, region: str):
     ret.extend(
         aws.iam.get_all_role_arns_with_tags(iam_client, [(tag_key, tag_value)])
     )
+    # Retrieve ARNs of all IAM Policies with supplied key/value tag pair
+    ret.extend(
+        aws.iam.get_all_policy_arns_with_tags(iam_client, [(tag_key, tag_value)])
+    )
 
     return ret
 
@@ -44,7 +44,7 @@ def _parse_api_gateway_arn(arn: str):
     splt = arn.split(":")
     resource_path = splt[-1].split("/")
 
-    if resource_path[3] == "stages":
+    if len(resource_path) > 3 and resource_path[3] == "stages":
         # Form /restapis/<api_id>/stages/<stage_name>
         return "apigateway", "stages"
     else:
@@ -70,6 +70,9 @@ def _parse_arn(arn: str):
         # don't support a manual search-object-with-tag process for other
         # S3 objects at this time
         return "s3", "bucket"
+
+    if splt[2] == "lambda":
+        return "lambda", splt[-2]
 
     return splt[2], splt[-1].split("/")[0]
 
