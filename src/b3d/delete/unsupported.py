@@ -1,5 +1,5 @@
-from src.b3d.delete import Service
-from src.b3d.utils import log_msg
+from b3d.delete import Service
+from b3d.utils import log_msg
 import boto3
 
 

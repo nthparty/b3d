@@ -1,4 +1,4 @@
-from src import delete_resources
+from b3d import delete_resources
 from tests.aws import ec2
 from tests import config
 

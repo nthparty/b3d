@@ -1,1 +1,1 @@
-from src.b3d.b3d import delete_resources
+from b3d.b3d_ import delete_resources

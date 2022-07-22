@@ -1,4 +1,4 @@
-from src.b3d.aws import helpers
+from b3d.aws import helpers
 from typing import List, Dict, Tuple
 import boto3
 import b3q

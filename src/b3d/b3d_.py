@@ -1,8 +1,8 @@
-from src.b3d import aws, utils
 import boto3
+from b3d import aws, utils
 
 
-DELETE_PROTOCOL_OBJECT_MAP = utils.build_resource_map("src.b3d.delete")
+DELETE_PROTOCOL_OBJECT_MAP = utils.build_resource_map("b3d.delete")
 
 
 def _get_all_resources_with_tag(tag_key: str, tag_value: str, region: str):

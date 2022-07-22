@@ -1,6 +1,6 @@
-from src.b3d.delete import Service
-from src.b3d import aws
-from src.b3d.utils import log_msg
+from b3d.delete import Service
+from b3d import aws
+from b3d.utils import log_msg
 from typing import List, Dict
 import boto3
 
