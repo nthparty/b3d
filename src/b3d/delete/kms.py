@@ -22,9 +22,15 @@ class KMS(Service):
 
         @staticmethod
         def query(cl: boto3.client, resource_arn: str) -> bool:
-            return aws.kms.get_key(
+
+            key_data = aws.kms.get_key(
                 cl, KMS.Key.extract_resource_id_from_arn(resource_arn)
-            ) is not None
+            )
+
+            if key_data is None:
+                return False
+
+            return key_data["KeyMetadata"].get("KeyState") != "PendingDeletion"
 
         @staticmethod
         def destroy(arn: str, region: str, dry: bool = True) -> List[Dict]:
