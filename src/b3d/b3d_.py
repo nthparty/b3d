@@ -1,5 +1,6 @@
 import boto3
 from b3d import aws, utils
+from typing import Iterator
 
 
 DELETE_PROTOCOL_OBJECT_MAP = utils.build_resource_map("b3d.delete")
@@ -100,7 +101,7 @@ def _map_arns(arns: list) -> zip:
     return zip(arns, mapped_arns)
 
 
-def delete_resources(tag_key: str, tag_value: str, region: str = "us-east-1", dry=True):
+def delete_resources(tag_key: str, tag_value: str, region: str = "us-east-1", dry=True) -> Iterator[list]:
 
     # Retrieve ARNs of all objects with the supplied name/tag pair
     resource_arns = _get_all_resources_with_tag(tag_key, tag_value, region)
@@ -110,13 +111,6 @@ def delete_resources(tag_key: str, tag_value: str, region: str = "us-east-1", dr
 
     # For each resource, detach it from all dependent objects, delete it, and produce a report
     # of all performed actions, whether they were successful, and error messages for any actions
-    # that were unsuccessful. Only reports with length > 0 are returned, because an empty report
-    # indicates that the resource had already been deleted.
-    reports = [obj.destroy(arn, region, dry) for arn, obj in mapped_arns]
-
-    # Flatten 2D list and return it
-    return [
-        elem for reports_list in
-        [r for r in reports if len(r) > 0]
-        for elem in reports_list
-    ]
+    # that were unsuccessful.
+    for arn, obj in mapped_arns:
+        yield obj.destroy(arn, region, dry)

@@ -12,7 +12,7 @@ def test_instance_only(generate_tag):
     ec2.tag_ec2_resources([instance_id], [generate_tag])
     resp = delete_resources(generate_tag["Key"], generate_tag["Value"], config.AWS_REGION, dry=False)
 
-    assert all([r["result"] == "success" for r in resp])
+    assert all([r["result"] == "success" for rr in resp for r in rr])
 
 
 def test_security_group_only(generate_tag):
@@ -24,7 +24,7 @@ def test_security_group_only(generate_tag):
     ec2.tag_ec2_resources([security_group_id], [generate_tag])
     resp = delete_resources(generate_tag["Key"], generate_tag["Value"], config.AWS_REGION, dry=False)
 
-    assert all([r["result"] == "success" for r in resp])
+    assert all([r["result"] == "success" for rr in resp for r in rr])
 
 
 def test_volume_only(generate_tag):
@@ -36,7 +36,7 @@ def test_volume_only(generate_tag):
     ec2.tag_ec2_resources([volume_id], [generate_tag])
     resp = delete_resources(generate_tag["Key"], generate_tag["Value"], config.AWS_REGION, dry=False)
 
-    assert all([r["result"] == "success" for r in resp])
+    assert all([r["result"] == "success" for rr in resp for r in rr])
 
 
 def test_all_ec2_resources(generate_tag):
@@ -59,4 +59,4 @@ def test_all_ec2_resources(generate_tag):
 
     resp = delete_resources(generate_tag["Key"], generate_tag["Value"], config.AWS_REGION, dry=False)
 
-    assert all([r["result"] == "success" for r in resp])
+    assert all([r["result"] == "success" for rr in resp for r in rr])
