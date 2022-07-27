@@ -10,18 +10,14 @@ pair. It can be called as follows:
 from b3d import delete_resources
 
 reports = delete_resources("tag_key", "tag_value", "aws_region_name", dry=False)
-
-# reports list might look like:
-# [
-#   {'result': 'success', 'err': None, 'msg': 'Successfully deleted api-key with ID zdmz8ysque'}, 
-#   {'result': 'success', 'err': None, 'msg': 'Successfully deleted api-key with ID qwv83b4pj5'}
-# ]
 ```
 
-The returned `reports` will be a list of all resources affected by the deletion procedure, the type of action
-performed (e.g. detachment from another resource, deletion), and whether that action was successful, along with
-an error message if appropriate.
+The `delete_resources()` function returns an iterator whose elements are lists of reports for each single resource.
+A list of reports is yielded (rather than an individual report) because a delete procedure might involve detaching 
+any number of resources from the target resource first. Each report will detail the type of action performed (e.g. 
+detachment from another resource, deletion, noop), whether that action was successful, and an error message if 
+appropriate.
 
-If `dry=True`, `delete_resources` will perform all the same queries on AWS resources, but all detach and
-delete operations are skipped. The same reports list will be produced, but the resources themselves will
-be unaffected.
+If `dry=True`, `delete_resources` will perform all the same queries on AWS resources, but all detach and delete 
+operations will be skipped. The same reports list will therefore be produced, but the resources themselves will be 
+unaffected.
