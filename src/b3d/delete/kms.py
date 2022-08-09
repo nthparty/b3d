@@ -1,13 +1,16 @@
+"""
+Delete procedures for KMS resources
+"""
+from typing import List, Dict
+import boto3
 from b3d.delete import Service
 from b3d import aws
 from b3d.utils import log_msg
-from typing import List, Dict
-import boto3
 
 
 class KMS(Service):
     """
-    Container class for KMS resource deletion procedures
+    Container class for KMS resource delete procedures
     """
 
     @staticmethod
@@ -15,6 +18,9 @@ class KMS(Service):
         return "kms"
 
     class Key(Service.Resource):
+        """
+        Delete procedure for Key objects
+        """
 
         @staticmethod
         def resource_type() -> str:

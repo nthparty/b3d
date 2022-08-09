@@ -1,6 +1,9 @@
+"""
+Helper functions for this module
+"""
+import time
 from botocore.exceptions import ClientError
 import boto3
-import time
 
 
 def make_call_catch_err(fn: callable, **kwargs):
@@ -15,6 +18,9 @@ def make_call_catch_err(fn: callable, **kwargs):
 
 
 def wait_on_condition(cl: boto3.client, condition: str, **kwargs):
+    """
+    Instantiate and run a waiter object
+    """
 
     waiter = cl.get_waiter(condition)
     waiter.wait(**kwargs)
@@ -47,6 +53,9 @@ def attempt_api_call_multiple_times(func):
 
 
 def dry_run_success_resp():
+    """
+    Produce a generic success response. Used in dry runs
+    """
     return {
         "ResponseMetadata": {
             "HTTPStatusCode": 200

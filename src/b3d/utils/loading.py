@@ -1,3 +1,6 @@
+"""
+Module for building a resource-to-delete-procedure map any time this library is invoked
+"""
 import os
 from pkgutil import iter_modules
 from importlib import import_module

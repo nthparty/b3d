@@ -1,13 +1,16 @@
+"""
+Delete procedures for EC2 resources
+"""
+from typing import List, Dict
+import boto3
 from b3d.delete import Service
 from b3d import aws
 from b3d.utils import log_msg
-from typing import List, Dict
-import boto3
 
 
 class EC2(Service):
     """
-    Container class for EC2 resource deletion procedures
+    Container class for EC2 resource delete procedures
     """
 
     @staticmethod
@@ -15,6 +18,9 @@ class EC2(Service):
         return "ec2"
 
     class Instance(Service.Resource):
+        """
+        Delete procedure for Instance objects
+        """
 
         @staticmethod
         def resource_type() -> str:
@@ -90,6 +96,9 @@ class EC2(Service):
             return resps
 
     class SecurityGroup(Service.Resource):
+        """
+        Delete procedure for SecurityGroup objects
+        """
 
         @staticmethod
         def resource_type() -> str:
@@ -155,6 +164,9 @@ class EC2(Service):
             return resps
 
     class Volume(Service.Resource):
+        """
+        Delete procedure for Volume objects
+        """
 
         @staticmethod
         def resource_type() -> str:

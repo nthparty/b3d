@@ -1,10 +1,16 @@
-from b3d.aws import helpers
+"""
+EC2 helper functions
+"""
 import boto3
 import b3q
+from b3d.aws import helpers
 
 
 @helpers.attempt_api_call_multiple_times
 def delete_instance(cl: boto3.client, instance_id: str, dry: bool):
+    """
+    Terminate an instance and for it to be fully terminated
+    """
 
     if dry:
         return helpers.dry_run_success_resp()
@@ -20,6 +26,9 @@ def delete_instance(cl: boto3.client, instance_id: str, dry: bool):
 
 
 def get_instance(cl: boto3.client, instance_id: str):
+    """
+    Describe an instance, if it exists
+    """
 
     resp = helpers.make_call_catch_err(
         cl.describe_instances, InstanceIds=[instance_id]
@@ -28,6 +37,9 @@ def get_instance(cl: boto3.client, instance_id: str):
 
 
 def describe_all_instances(cl: boto3.client):
+    """
+    Describe all instances in some region
+    """
     return list(b3q.get(
         cl.describe_instances,
         attribute="Reservations"
@@ -36,6 +48,9 @@ def describe_all_instances(cl: boto3.client):
 
 @helpers.attempt_api_call_multiple_times
 def delete_security_group(cl: boto3.client, security_group_id: str, dry: bool):
+    """
+    Delete a security group
+    """
 
     if dry:
         return helpers.dry_run_success_resp()
@@ -46,6 +61,9 @@ def delete_security_group(cl: boto3.client, security_group_id: str, dry: bool):
 
 
 def get_security_group(cl: boto3.client, security_group_id: str):
+    """
+    Describe a security group, if it exists
+    """
 
     resp = helpers.make_call_catch_err(
         cl.describe_security_groups, GroupIds=[security_group_id]
@@ -71,6 +89,9 @@ def get_default_security_group_id(cl: boto3.client):
 
 @helpers.attempt_api_call_multiple_times
 def delete_volume(cl: boto3.client, volume_id: str, dry: bool):
+    """
+    Delete a volume
+    """
 
     if dry:
         return helpers.dry_run_success_resp()
@@ -81,6 +102,9 @@ def delete_volume(cl: boto3.client, volume_id: str, dry: bool):
 
 
 def get_volume(cl: boto3.client, volume_id: str):
+    """
+    Describe a volume, if it exists
+    """
 
     resp = helpers.make_call_catch_err(cl.describe_volumes, VolumeIds=[volume_id])
     return None if resp["ResponseMetadata"]["HTTPStatusCode"] != 200 else resp
@@ -95,13 +119,15 @@ def get_volume_attachments(cl: boto3.client, volume_id: str):
     if volume_data is None:
         # Volume not found, already deleted.
         return []
-    else:
-        return [
-            attachment["InstanceId"]for attachment in volume_data["Volumes"][0]["Attachments"]
-        ]
+    return [
+        attachment["InstanceId"]for attachment in volume_data["Volumes"][0]["Attachments"]
+    ]
 
 
 def detach_volume_from_instance(cl: boto3.client, instance_id: str, volume_id: str, dry: bool):
+    """
+    Detach a volume from a running instance
+    """
 
     if dry:
         return helpers.dry_run_success_resp()

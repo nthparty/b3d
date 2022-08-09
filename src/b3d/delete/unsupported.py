@@ -1,11 +1,14 @@
+"""
+Delete procedures for unsupported resources
+"""
+import boto3
 from b3d.delete import Service
 from b3d.utils import log_msg
-import boto3
 
 
 class UnsupportedService(Service):
     """
-    Container class for IAM resource deletion procedures
+    Container class for unsupported resource delete procedures
     """
 
     @staticmethod
@@ -13,6 +16,9 @@ class UnsupportedService(Service):
         return "unsupported-service"
 
     class UnsupportedResource(Service.Resource):
+        """
+        Delete procedure for unsupported objects
+        """
 
         @staticmethod
         def resource_type():

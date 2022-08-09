@@ -1,13 +1,14 @@
+""" Delete procedures for S3 resources """
+from typing import List, Dict
+import boto3
 from b3d.delete import Service
 from b3d import aws
 from b3d.utils import log_msg
-from typing import List, Dict
-import boto3
 
 
 class S3(Service):
     """
-    Container class for S3 resource deletion procedures
+    Container class for S3 resource delete procedures
     """
 
     @staticmethod
@@ -15,6 +16,9 @@ class S3(Service):
         return "s3"
 
     class Bucket(Service.Resource):
+        """
+        Delete procedure for Bucket objects
+        """
 
         @staticmethod
         def extract_resource_id_from_arn(arn: str) -> str:

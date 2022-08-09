@@ -1,8 +1,14 @@
-from b3d.aws import helpers
+"""
+S3 helper functions
+"""
 import boto3
+from b3d.aws import helpers
 
 
 def get_bucket(cl: boto3.client, bucket_name: str) -> bool:
+    """
+    Describe a bucket, if it exists
+    """
 
     resp = helpers.make_call_catch_err(
         cl.head_bucket, Bucket=bucket_name
@@ -12,6 +18,9 @@ def get_bucket(cl: boto3.client, bucket_name: str) -> bool:
 
 @helpers.attempt_api_call_multiple_times
 def delete_bucket(cl: boto3.client, bucket_name: str, dry: bool) -> dict:
+    """
+    Delete a bucket
+    """
 
     if dry:
         return helpers.dry_run_success_resp()
@@ -22,6 +31,9 @@ def delete_bucket(cl: boto3.client, bucket_name: str, dry: bool) -> dict:
 
 
 def get_objects_in_bucket(cl: boto3.client, bucket_name: str) -> list:
+    """
+    List all objects in a bucket
+    """
 
     resp = helpers.make_call_catch_err(
         cl.list_objects, Bucket=bucket_name
@@ -31,6 +43,9 @@ def get_objects_in_bucket(cl: boto3.client, bucket_name: str) -> list:
 
 @helpers.attempt_api_call_multiple_times
 def delete_objects(cl: boto3.client, bucket_name: str, objects: list, dry: bool) -> dict:
+    """
+    Delete specified objects in a bucket
+    """
 
     if dry:
         return helpers.dry_run_success_resp()

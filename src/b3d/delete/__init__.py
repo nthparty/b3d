@@ -1,9 +1,15 @@
+"""
+Abstract class definition for AWS resource delete procedures
+"""
 import abc
-import boto3
 from typing import List, Dict
+import boto3
 
 
 class Service(abc.ABC):
+    """
+    Abstract container class for AWS resource delete procedures
+    """
 
     @staticmethod
     @abc.abstractmethod
@@ -11,12 +17,17 @@ class Service(abc.ABC):
         """
         Return the name of this service type.
         """
-        pass
 
     class Resource(abc.ABC):
+        """
+        Abstract class for resource delete procedure
+        """
 
         @staticmethod
         def extract_resource_id_from_arn(arn: str) -> str:
+            """
+            Extract resource ID from ARN string
+            """
             return arn.split("/")[-1]
 
         @staticmethod
@@ -25,7 +36,6 @@ class Service(abc.ABC):
             """
             Determine if this resource exists.
             """
-            pass
 
         @staticmethod
         @abc.abstractmethod
@@ -33,7 +43,6 @@ class Service(abc.ABC):
             """
             Return the name of this resource type.
             """
-            pass
 
         @staticmethod
         @abc.abstractmethod
@@ -41,4 +50,3 @@ class Service(abc.ABC):
             """
             Destroy the resource corresponding to this ARN.
             """
-            pass

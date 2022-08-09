@@ -1,9 +1,15 @@
-from b3d.aws import helpers
+"""
+ApiGateway helper functions
+"""
 import boto3
 import b3q
+from b3d.aws import helpers
 
 
 def get_rest_api(cl: boto3.client, api_id: str):
+    """
+    Describe a rest api, if it exists
+    """
 
     resp = helpers.make_call_catch_err(
         cl.get_rest_api, restApiId=api_id
@@ -72,6 +78,9 @@ def delete_base_path_mapping(cl: boto3.client, domain_name: str, base_path: str,
 
 
 def get_usage_plan(cl: boto3.client, usage_plan_id: str):
+    """
+    Describe a usage plan, if it exists
+    """
 
     resp = helpers.make_call_catch_err(
         cl.get_usage_plan, usagePlanId=usage_plan_id
@@ -81,6 +90,9 @@ def get_usage_plan(cl: boto3.client, usage_plan_id: str):
 
 @helpers.attempt_api_call_multiple_times
 def delete_usage_plan(cl: boto3.client, usage_plan_id: str, dry: bool):
+    """
+    Delete a usage plan
+    """
 
     if dry:
         return helpers.dry_run_success_resp()
@@ -92,6 +104,9 @@ def delete_usage_plan(cl: boto3.client, usage_plan_id: str, dry: bool):
 
 @helpers.attempt_api_call_multiple_times
 def delete_stage(cl: boto3.client, rest_api_id: str, stage_name: str, dry: bool):
+    """
+    Delete a stage from some rest api
+    """
 
     if dry:
         return helpers.dry_run_success_resp()
@@ -102,10 +117,16 @@ def delete_stage(cl: boto3.client, rest_api_id: str, stage_name: str, dry: bool)
 
 
 def get_custom_domain_names(cl: boto3.client):
+    """
+    Retrieve all domain names for some region
+    """
     return list(b3q.get(cl.get_domain_names))
 
 
 def get_api_key(cl: boto3.client, api_key_id: str, include_value: bool = True):
+    """
+    Describe an api key, if it exists
+    """
 
     resp = helpers.make_call_catch_err(
         cl.get_api_key, apiKey=api_key_id, includeValue=include_value
@@ -115,6 +136,9 @@ def get_api_key(cl: boto3.client, api_key_id: str, include_value: bool = True):
 
 @helpers.attempt_api_call_multiple_times
 def delete_api_key(cl: boto3.client, api_key_id: str, dry: bool):
+    """
+    Delete an api key
+    """
 
     if dry:
         return helpers.dry_run_success_resp()

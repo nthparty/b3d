@@ -1,6 +1,6 @@
 [project]
 name = "b3d"
-version = "0.1.4"
+version = "0.1.5"
 description = """
     Boto3 utility library that supports deletion of collections of \
     AWS resources (such as temporary resources created during unit \
@@ -15,8 +15,8 @@ readme = "README.md"
 requires-python = ">=3.7"
 
 dependencies = [
-    "b3q==0.3.2",
-    "boto3==1.24.27",
+    "b3q~=0.3.2",
+    "boto3~=1.24.27",
     "botocore==1.27.27",
     "jmespath==1.0.1",
     "python-dateutil==2.8.2",
@@ -34,7 +34,11 @@ repository = "https://github.com/nthparty/b3d"
 test = [
     "pytest~=7.0"
 ]
+lint = [
+    "pylint~=2.14.0"
+]
 publish = [
+    "build~=0.8",
     "twine~=4.0"
 ]
 

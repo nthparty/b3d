@@ -1,13 +1,16 @@
+"""
+Delete procedures for IAM resources
+"""
+from typing import List, Dict
+import boto3
 from b3d.delete import Service
 from b3d import aws
 from b3d.utils import log_msg
-from typing import List, Dict
-import boto3
 
 
 class IAM(Service):
     """
-    Container class for IAM resource deletion procedures
+    Container class for IAM resource delete procedures
     """
 
     @staticmethod
@@ -15,6 +18,9 @@ class IAM(Service):
         return "iam"
 
     class User(Service.Resource):
+        """
+        Delete procedure for User objects
+        """
 
         @staticmethod
         def resource_type() -> str:
@@ -114,6 +120,9 @@ class IAM(Service):
             return resps
 
     class Policy(Service.Resource):
+        """
+        Delete procedure for Policy objects
+        """
 
         @staticmethod
         def resource_type() -> str:
@@ -244,6 +253,9 @@ class IAM(Service):
             return resps
 
     class Role(Service.Resource):
+        """
+        Delete procedure for Role objects
+        """
 
         @staticmethod
         def resource_type() -> str:

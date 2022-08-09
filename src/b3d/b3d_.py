@@ -1,6 +1,10 @@
+"""
+Boto3 utility library that supports deletion of collections of AWS resources
+(such as temporary resources created during unit tests).
+"""
+from typing import Iterator
 import boto3
 from b3d import aws, utils
-from typing import Iterator
 
 
 DELETE_PROTOCOL_OBJECT_MAP = utils.build_resource_map("b3d.delete")
@@ -48,9 +52,8 @@ def _parse_api_gateway_arn(arn: str):
     if len(resource_path) > 3 and resource_path[3] == "stages":
         # Form /restapis/<api_id>/stages/<stage_name>
         return "apigateway", "stages"
-    else:
-        # Form /<resource-type>/<resource_id>
-        return "apigateway", resource_path[1]
+    # Form /<resource-type>/<resource_id>
+    return "apigateway", resource_path[1]
 
 
 def _parse_arn(arn: str):
@@ -102,6 +105,9 @@ def _map_arns(arns: list) -> zip:
 
 
 def delete_resources(tag_key: str, tag_value: str, region: str = "us-east-1", dry=True) -> Iterator[list]:
+    """
+    Delete all resources with some (<tag_key>, <tag_value>) tag pair, given some region
+    """
 
     # Retrieve ARNs of all objects with the supplied name/tag pair
     resource_arns = _get_all_resources_with_tag(tag_key, tag_value, region)
@@ -113,4 +119,9 @@ def delete_resources(tag_key: str, tag_value: str, region: str = "us-east-1", dr
     # of all performed actions, whether they were successful, and error messages for any actions
     # that were unsuccessful.
     for arn, obj in mapped_arns:
-        yield obj.destroy(arn, region, dry)
+
+        report = obj.destroy(arn, region, dry)
+        # Some reports are empty (e.g. KMS keys that have already been scheduled for deletion are
+        # picked up by the ResourceGroupsTaggingApi)
+        if len(report) > 0:
+            yield report

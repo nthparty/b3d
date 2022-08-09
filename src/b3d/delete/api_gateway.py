@@ -1,13 +1,16 @@
+"""
+Delete procedures for ApiGateway resources
+"""
+from typing import List, Dict
+import boto3
 from b3d.delete import Service
 from b3d import aws
 from b3d.utils import log_msg
-from typing import List, Dict
-import boto3
 
 
-class APIGateway(Service):
+class ApiGateway(Service):
     """
-    Container class for API Gateway resource deletion procedures
+    Container class for API Gateway resource delete procedures
     """
 
     @staticmethod
@@ -40,6 +43,9 @@ class APIGateway(Service):
         return resps
 
     class RestApi(Service.Resource):
+        """
+        Delete procedure for RestApi objects
+        """
 
         @staticmethod
         def resource_type() -> str:
@@ -48,7 +54,7 @@ class APIGateway(Service):
         @staticmethod
         def query(cl: boto3.client, resource_arn: str) -> bool:
             return aws.api_gateway.get_rest_api(
-                cl, APIGateway.RestApi.extract_resource_id_from_arn(resource_arn)
+                cl, ApiGateway.RestApi.extract_resource_id_from_arn(resource_arn)
             ) is not None
 
         @staticmethod
@@ -56,13 +62,13 @@ class APIGateway(Service):
 
             resps = []
             cl = boto3.client("apigateway", region_name=region)
-            api_id = APIGateway.RestApi.extract_resource_id_from_arn(arn)
+            api_id = ApiGateway.RestApi.extract_resource_id_from_arn(arn)
 
-            if not APIGateway.RestApi.query(cl, arn):
+            if not ApiGateway.RestApi.query(cl, arn):
                 return resps
 
             # Delete all base path mappings associated with this rest api
-            resps.extend(APIGateway._delete_base_path_mappings(cl, api_id, dry=dry))
+            resps.extend(ApiGateway._delete_base_path_mappings(cl, api_id, dry=dry))
 
             # Delete this rest api
             resps.append(
@@ -78,6 +84,9 @@ class APIGateway(Service):
             return resps
 
     class UsagePlan(Service.Resource):
+        """
+        Delete procedure for UsagePlan objects
+        """
 
         @staticmethod
         def resource_type() -> str:
@@ -86,7 +95,7 @@ class APIGateway(Service):
         @staticmethod
         def query(cl: boto3.client, resource_arn: str) -> bool:
             return aws.api_gateway.get_usage_plan(
-                cl, APIGateway.UsagePlan.extract_resource_id_from_arn(resource_arn)
+                cl, ApiGateway.UsagePlan.extract_resource_id_from_arn(resource_arn)
             ) is not None
 
         @staticmethod
@@ -98,7 +107,7 @@ class APIGateway(Service):
 
                 # Delete all base path mappings associated with this stage
                 resps.extend(
-                    APIGateway._delete_base_path_mappings(
+                    ApiGateway._delete_base_path_mappings(
                         cl, rest_api_id=api_stage.get("apiId"), stage_name=api_stage.get("stage"), dry=dry
                     )
                 )
@@ -121,13 +130,13 @@ class APIGateway(Service):
 
             resps = []
             cl = boto3.client("apigateway", region_name=region)
-            usage_plan_id = APIGateway.UsagePlan.extract_resource_id_from_arn(arn)
+            usage_plan_id = ApiGateway.UsagePlan.extract_resource_id_from_arn(arn)
 
-            if not APIGateway.UsagePlan.query(cl, arn):
+            if not ApiGateway.UsagePlan.query(cl, arn):
                 return resps
 
             # Delete all stages associated with this usage plan
-            resps.extend(APIGateway.UsagePlan._delete_stages(cl, usage_plan_id, dry))
+            resps.extend(ApiGateway.UsagePlan._delete_stages(cl, usage_plan_id, dry))
 
             resps.append(
                 log_msg.log_msg_destroy(
@@ -159,6 +168,9 @@ class APIGateway(Service):
             return []
 
     class ApiKey(Service.Resource):
+        """
+        Delete procedure for ApiKey objects
+        """
 
         @staticmethod
         def resource_type() -> str:
@@ -167,16 +179,16 @@ class APIGateway(Service):
         @staticmethod
         def query(cl: boto3.client, resource_arn: str) -> bool:
             return aws.api_gateway.get_api_key(
-                cl, APIGateway.ApiKey.extract_resource_id_from_arn(resource_arn)
+                cl, ApiGateway.ApiKey.extract_resource_id_from_arn(resource_arn)
             ) is not None
 
         @staticmethod
         def destroy(arn: str, region: str, dry: bool = True) -> List[Dict]:
 
             cl = boto3.client("apigateway", region_name=region)
-            api_key_id = APIGateway.ApiKey.extract_resource_id_from_arn(arn)
+            api_key_id = ApiGateway.ApiKey.extract_resource_id_from_arn(arn)
 
-            if not APIGateway.ApiKey.query(cl, arn):
+            if not ApiGateway.ApiKey.query(cl, arn):
                 return []
 
             return [

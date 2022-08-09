@@ -1,13 +1,16 @@
+"""
+Delete procedures for Lambda resources
+"""
+from typing import List, Dict
+import boto3
 from b3d.delete import Service
 from b3d import aws
 from b3d.utils import log_msg
-from typing import List, Dict
-import boto3
 
 
 class Lambda(Service):
     """
-    Container class for Lambda resource deletion procedures
+    Container class for Lambda resource delete procedures
     """
 
     @staticmethod
@@ -15,6 +18,9 @@ class Lambda(Service):
         return "lambda"
 
     class Function(Service.Resource):
+        """
+        Delete procedure for Function objects
+        """
 
         @staticmethod
         def extract_resource_id_from_arn(arn: str) -> str:
