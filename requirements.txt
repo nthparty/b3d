@@ -7,3 +7,4 @@ s3transfer==0.6.0
 six==1.16.0
 urllib3==1.26.9
 pytest~=7.1.2
+terrorform~=0.2

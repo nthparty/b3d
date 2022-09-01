@@ -35,9 +35,7 @@ class S3(Service):
             ) is not None
 
         @staticmethod
-        def _delete_objects(cl: boto3.client, bucket_name: str, dry: bool) -> dict:
-
-            objects = aws.s3.get_objects_in_bucket(cl, bucket_name)
+        def _delete_objects(cl: boto3.client, bucket_name: str, objects: list, dry: bool) -> dict:
             return log_msg.log_msg_destroy(
                 resource_type="objects",
                 resource_id=" | ".join(objects),
@@ -55,7 +53,9 @@ class S3(Service):
                 return resps
 
             # Remove all objects stored in this bucket
-            resps.append(S3.Bucket._delete_objects(cl, bucket_name, dry))
+            objects = aws.s3.get_objects_in_bucket(cl, bucket_name)
+            if len(objects) > 0:
+                resps.append(S3.Bucket._delete_objects(cl, bucket_name, objects, dry))
 
             # Delete this bucket
             resps.append(
