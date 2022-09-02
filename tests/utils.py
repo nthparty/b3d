@@ -42,6 +42,7 @@ def build(generate_tag, targets: list):
     Use terraform to build resources from a list of targets
     """
 
+    logger.info(f"using the following tag pair: {str(generate_tag)}")
     init(kw_args=[("-chdir", config.TF_DEPLOYMENT_DIR)])
     apply(
         kw_args=[("-chdir", config.TF_DEPLOYMENT_DIR)] +
@@ -50,7 +51,6 @@ def build(generate_tag, targets: list):
             "tag": generate_tag["Value"]
         }
     )
-    logger.info(f"using the following tag pair: {str(generate_tag)}")
     logger.info(f"terraform built from the following targets: {','.join(targets)}")
 
 
@@ -75,6 +75,7 @@ def evaluate(resps: list, target_len: int = None):
     for i, resp in enumerate(resps):
         logger.info(f"report {i}: {resp}")
 
+    # The number of delete reports equals the target number, if one was provided
     if target_len is not None:
         assert len(resps) == target_len
 
@@ -84,9 +85,11 @@ def evaluate(resps: list, target_len: int = None):
     assert all([r["result"] == "success" for rr in resps for r in rr])
 
 
-def build_delete_evaluate(generate_tag, targets):
+def build_delete_evaluate(generate_tag, targets, target_len: int = None):
     """
-    Build & delete targets, ensure correctness of output
+    Build & delete targets, ensure correctness of output. The target_len argument
+    defaults to None because the number of top-level reports will vary for some
+    tests depending on the order in which resources get deleted.
     """
 
     # Build target resources
@@ -94,7 +97,7 @@ def build_delete_evaluate(generate_tag, targets):
 
     # Delete resources by tag and evaluate output
     resps = delete(generate_tag)
-    evaluate(resps, len(resps))
+    evaluate(resps, target_len)
 
     # Run delete procedure again and ensure returned resource list is empty
     resps = delete(generate_tag)

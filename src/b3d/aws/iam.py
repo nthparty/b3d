@@ -298,6 +298,17 @@ def get_attached_user_policies(cl: boto3.client, user_name: str) -> List[Dict]:
     return [] if resp["ResponseMetadata"]["HTTPStatusCode"] != 200 else resp.get("AttachedPolicies", [])
 
 
+def get_inline_user_policies(cl: boto3.client, user_name: str) -> List[str]:
+    """
+    List all inline policies attached to a user
+    """
+
+    resp = helpers.make_call_catch_err(
+        cl.list_user_policies, UserName=user_name
+    )
+    return [] if resp["ResponseMetadata"]["HTTPStatusCode"] != 200 else resp.get("PolicyNames", [])
+
+
 def get_user_access_keys(cl: boto3.client, user_name: str) -> List[Dict]:
     """
     List all access keys associated with a user
@@ -356,6 +367,20 @@ def detach_policy_from_user(cl: boto3.client, user_name: str, policy_arn: str, d
     )
 
 
+@helpers.attempt_api_call_multiple_times
+def delete_inline_user_policy(cl: boto3.client, user_name: str, policy_name: str, dry: bool) -> dict:
+    """
+    Delete an inline policy for some user
+    """
+
+    if dry:
+        return helpers.dry_run_success_resp()
+
+    return helpers.make_call_catch_err(
+        cl.delete_user_policy, UserName=user_name, PolicyName=policy_name
+    )
+
+
 def user_has_permissions_boundary(cl: boto3.client, user_name: str) -> bool:
     """
     Determine whether a permissions boundary exists for a user
@@ -392,7 +417,7 @@ def policy_is_permissions_boundary_for_user(cl: boto3.client, user_name: str, po
 
 
 @helpers.attempt_api_call_multiple_times
-def detach_permissions_boundary_from_user(cl: boto3.client, user_name: str, dry: bool) -> dict:
+def delete_user_permissions_boundary(cl: boto3.client, user_name: str, dry: bool) -> dict:
     """
     Delete a permissions boundary from a user
     """

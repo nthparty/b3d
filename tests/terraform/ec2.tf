@@ -1,4 +1,6 @@
-
+data "aws_vpc" "default_vpc" {
+  default           = true
+}
 
 resource "aws_instance" "instance_simple" {
   ami               = var.test_ami_id
@@ -12,6 +14,7 @@ resource "aws_ebs_volume" "volume_simple" {
 
 resource "aws_security_group" "security_group_simple" {
   name              = "security_group_simple"
+  vpc_id            = data.aws_vpc.default_vpc.id
 }
 
 resource "aws_instance" "instance_composite" {
@@ -28,6 +31,7 @@ resource "aws_ebs_volume" "volume_composite" {
 
 resource "aws_security_group" "security_group_composite" {
   name              = "security_group_composite"
+  vpc_id            = data.aws_vpc.default_vpc.id
 
   ingress {
     description      = "TLS from VPC"

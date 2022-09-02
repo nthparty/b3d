@@ -33,14 +33,30 @@ class IAM(Service):
             ) is not None
 
         @staticmethod
-        def _detach_permissions_boundary(cl: boto3.client, user_name: str, dry: bool) -> Dict:
+        def _delete_permissions_boundary(cl: boto3.client, user_name: str, dry: bool) -> Dict:
             return log_msg.log_msg_detach(
                 resource_type_detached="permissions-boundary",
                 resource_type_detached_from="user",
                 resource_id_detached="N/A",
                 resource_id_detached_from=user_name,
-                resp=aws.iam.detach_permissions_boundary_from_user(cl, user_name, dry)
+                resp=aws.iam.delete_user_permissions_boundary(cl, user_name, dry)
             )
+
+        @staticmethod
+        def _delete_all_inline_policies(cl: boto3.client, user_name: str, dry: bool) -> List[Dict]:
+
+            resps = []
+            all_inline_policies = aws.iam.get_inline_user_policies(cl, user_name)
+            for ip in all_inline_policies:
+                resps.append(
+                    log_msg.log_msg_destroy(
+                        resource_type="inline-policy",
+                        resource_id=ip,
+                        resp=aws.iam.delete_inline_user_policy(cl, user_name, ip, dry)
+                    )
+                )
+
+            return resps
 
         @staticmethod
         def _detach_all_policies(cl: boto3.client, user_name: str, dry: bool) -> List[Dict]:
@@ -100,7 +116,10 @@ class IAM(Service):
 
             # Remove permissions boundary for this user, if one exists
             if aws.iam.user_has_permissions_boundary(cl, user_name):
-                resps.append(IAM.User._detach_permissions_boundary(cl, user_name, dry=dry))
+                resps.append(IAM.User._delete_permissions_boundary(cl, user_name, dry=dry))
+
+            # Delete all inline policies attached to this user
+            resps.extend(IAM.User._delete_all_inline_policies(cl, user_name, dry))
 
             # Detach all policies attached to this user
             resps.extend(IAM.User._detach_all_policies(cl, user_name, dry))
@@ -134,18 +153,35 @@ class IAM(Service):
 
         @staticmethod
         def _detach_from_users(cl: boto3.client, policy_arn: str, user_names: list, dry: bool) -> List[Dict]:
+            """
+            For each user that this policy is associated with, determine whether the policy is being used
+            as a permissions boundary for that user or if it is simply attached. In the former case, the
+            permissions boundary for that user is destroyed (since there is only ever one). In the latter
+            case, the policy is detached from the user.
+            """
 
             resps = []
             for user in user_names:
-                resps.append(
-                    log_msg.log_msg_detach(
-                        resource_type_detached="policy",
-                        resource_id_detached=IAM.Policy.extract_resource_id_from_arn(policy_arn),
-                        resource_type_detached_from="user",
-                        resource_id_detached_from=user,
-                        resp=aws.iam.detach_policy_from_user(cl, user, policy_arn, dry)
+                if aws.iam.policy_is_permissions_boundary_for_user(cl, user, policy_arn):
+                    resps.append(
+                        log_msg.log_msg_detach(
+                            resource_type_detached="permissions-boundary",
+                            resource_type_detached_from="user",
+                            resource_id_detached="N/A",
+                            resource_id_detached_from=user,
+                            resp=aws.iam.delete_user_permissions_boundary(cl, user, dry)
+                        )
                     )
-                )
+                else:
+                    resps.append(
+                        log_msg.log_msg_detach(
+                            resource_type_detached="policy",
+                            resource_id_detached=IAM.Policy.extract_resource_id_from_arn(policy_arn),
+                            resource_type_detached_from="user",
+                            resource_id_detached_from=user,
+                            resp=aws.iam.detach_policy_from_user(cl, user, policy_arn, dry)
+                        )
+                    )
 
             return resps
 
