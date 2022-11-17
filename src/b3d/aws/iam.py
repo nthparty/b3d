@@ -416,6 +416,26 @@ def policy_is_permissions_boundary_for_user(cl: boto3.client, user_name: str, po
     return False
 
 
+def policy_is_permissions_boundary_for_role(cl: boto3.client, role_name: str, policy_arn: str) -> bool:
+    """
+    Given some role name and a policy ARN, determine whether that policy ARN is being used as the
+    permissions boundary for that role.
+    """
+
+    role_data = get_role(cl, role_name)
+
+    # If role doesn't exist, return False
+    if role_data["ResponseMetadata"]["HTTPStatusCode"] != 200:
+        return False
+
+    # If role exists and it has a permissions boundary set, compare it to policy_arn
+    if role_data["Role"].get("PermissionsBoundary") is not None:
+        return role_data["Role"]["PermissionsBoundary"].get("PermissionsBoundaryArn") == policy_arn
+
+    # If role exists and no permissions boundary is set, return False
+    return False
+
+
 @helpers.attempt_api_call_multiple_times
 def delete_user_permissions_boundary(cl: boto3.client, user_name: str, dry: bool) -> dict:
     """

@@ -167,7 +167,7 @@ class IAM(Service):
                         log_msg.log_msg_detach(
                             resource_type_detached="permissions-boundary",
                             resource_type_detached_from="user",
-                            resource_id_detached="N/A",
+                            resource_id_detached=policy_arn,
                             resource_id_detached_from=user,
                             resp=aws.iam.delete_user_permissions_boundary(cl, user, dry)
                         )
@@ -207,15 +207,26 @@ class IAM(Service):
 
             resps = []
             for role in role_names:
-                resps.append(
-                    log_msg.log_msg_detach(
-                        resource_type_detached="policy",
-                        resource_id_detached=IAM.Policy.extract_resource_id_from_arn(policy_arn),
-                        resource_type_detached_from="role",
-                        resource_id_detached_from=role,
-                        resp=aws.iam.detach_role_policy(cl, role, policy_arn, dry)
+                if aws.iam.policy_is_permissions_boundary_for_role(cl, role, policy_arn):
+                    resps.append(
+                        log_msg.log_msg_detach(
+                            resource_type_detached="permissions-boundary",
+                            resource_type_detached_from="role",
+                            resource_id_detached=policy_arn,
+                            resource_id_detached_from=role,
+                            resp=aws.iam.delete_role_permissions_boundary(cl, role, dry)
+                        )
                     )
-                )
+                else:
+                    resps.append(
+                        log_msg.log_msg_detach(
+                            resource_type_detached="policy",
+                            resource_id_detached=IAM.Policy.extract_resource_id_from_arn(policy_arn),
+                            resource_type_detached_from="role",
+                            resource_id_detached_from=role,
+                            resp=aws.iam.detach_role_policy(cl, role, policy_arn, dry)
+                        )
+                    )
 
             return resps
 
